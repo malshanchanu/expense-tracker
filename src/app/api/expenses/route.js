@@ -1,25 +1,20 @@
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '@/app/lib/db';
 
-// 1. GET function to fetch data (with filtering)
 export async function GET(request) {
     try {
         const { searchParams } = new URL(request.url);
         const startDate = searchParams.get('startDate');
         const endDate = searchParams.get('endDate');
-
         const pool = await connectToDatabase();
 
-        // If two dates are provided, execute the Stored Procedure
         if (startDate && endDate) {
             const result = await pool.request()
                 .input('StartDate', startDate)
                 .input('EndDate', endDate)
-                .execute('sp_GetExpensesByDateRange'); // Your custom Stored Procedure
+                .execute('sp_GetExpensesByDateRange'); 
             return NextResponse.json(result.recordset);
-        } 
-        // If no dates are provided, return all records
-        else {
+        } else {
             const result = await pool.request().query(`
                 SELECT e.ExpenseID, e.Amount, e.ExpenseDate, e.Description, c.CategoryName 
                 FROM Expenses e 
@@ -29,12 +24,10 @@ export async function GET(request) {
             return NextResponse.json(result.recordset);
         }
     } catch (error) {
-        console.error("Error fetching expenses:", error);
         return NextResponse.json({ error: "Failed to fetch expenses" }, { status: 500 });
     }
 }
 
-// 2. POST function to insert data
 export async function POST(request) {
     try {
         const body = await request.json();
@@ -50,13 +43,13 @@ export async function POST(request) {
                 INSERT INTO Expenses (Amount, ExpenseDate, Description, CategoryID) 
                 VALUES (@Amount, @ExpenseDate, @Description, @CategoryID)
             `);
-        return NextResponse.json({ message: "Expense saved successfully! 🎉" }, { status: 201 });
+        return NextResponse.json({ message: "වියදම සාර්ථකව ඇතුළත් කළා! 🎉" }, { status: 201 });
     } catch (error) {
-        return NextResponse.json({ error: "Failed to save expense", details: error.message }, { status: 500 });
+        console.error("💥 Error saving expense:", error.message);
+        return NextResponse.json({ error: "වියදම ඇතුළත් කිරීම අසාර්ථකයි", details: error.message }, { status: 500 });
     }
 }
 
-// 3. DELETE function to remove data
 export async function DELETE(request) {
     try {
         const { searchParams } = new URL(request.url);
@@ -65,8 +58,8 @@ export async function DELETE(request) {
         await pool.request()
             .input('ExpenseID', id)
             .query('DELETE FROM Expenses WHERE ExpenseID = @ExpenseID');
-        return NextResponse.json({ message: "Expense deleted successfully!" }, { status: 200 });
+        return NextResponse.json({ message: "වියදම මකා දැමුවා!" }, { status: 200 });
     } catch (error) {
-        return NextResponse.json({ error: "Failed to delete expense" }, { status: 500 });
+        return NextResponse.json({ error: "මකා දැමීම අසාර්ථකයි" }, { status: 500 });
     }
 }
