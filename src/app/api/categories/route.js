@@ -7,7 +7,7 @@ export async function GET() {
         const result = await pool.request().query('SELECT * FROM Categories');
         return NextResponse.json(result.recordset);
     } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error("Error fetching categories:", error.message);
         return NextResponse.json({ error: 'Failed to fetch categories' }, { status: 500 });
     }
 }
@@ -29,38 +29,54 @@ export async function POST(request) {
 
         let newId = null;
         if (result.recordset && result.recordset.length > 0) {
+            // Extract the first value from the first record
             newId = Object.values(result.recordset); 
         }
 
         if (!newId) {
-            throw new Error("Database එකෙන් ID එක ලැබුණේ නැත!");
+            throw new Error("Category ID was not returned from the database.");
         }
 
-        return NextResponse.json({ message: "Category added", categoryId: newId }, { status: 201 });
+        return NextResponse.json({ 
+            message: "Category added successfully", 
+            categoryId: newId 
+        }, { status: 201 });
         
     } catch (error) {
-        console.error("Error adding category:", error);
-        return NextResponse.json({ error: 'Failed to add category', details: error.message }, { status: 500 });
+        console.error("Error adding category:", error.message);
+        return NextResponse.json({ 
+            error: 'Failed to add category', 
+            details: error.message 
+        }, { status: 500 });
     }
 }
 
-// 🚀 අලුතින් එකතු කළ මකා දැමීමේ කේතය
 export async function DELETE(request) {
     try {
         const { searchParams } = new URL(request.url);
         const id = searchParams.get('id');
+        
+        if (!id) {
+            return NextResponse.json({ error: "Category ID is required" }, { status: 400 });
+        }
+
         const pool = await connectToDatabase();
         
         await pool.request()
             .input('CategoryID', id)
             .query('DELETE FROM Categories WHERE CategoryID = @CategoryID');
             
-        return NextResponse.json({ message: "Category deleted!" }, { status: 200 });
+        return NextResponse.json({ message: "Category deleted successfully!" }, { status: 200 });
     } catch (error) {
-        // අදාළ Category එකෙන් වියදම් කරලා තිබුණොත් එන දෝෂය ඇල්ලීම
+        console.error("Error deleting category:", error.message);
+        
+        // Handle Foreign Key constraint errors (if expenses are linked to this category)
         if (error.message.includes('REFERENCE constraint') || error.message.includes('conflicted with')) {
-            return NextResponse.json({ error: "මෙම වර්ගයට අදාළ වියදම් දැනටමත් ඇති බැවින් එය මකා දැමිය නොහැක." }, { status: 400 });
+            return NextResponse.json({ 
+                error: "Cannot delete category as it is linked to existing expense records." 
+            }, { status: 400 });
         }
+        
         return NextResponse.json({ error: "Failed to delete category" }, { status: 500 });
     }
 }
