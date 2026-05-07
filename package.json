@@ -9,6 +9,8 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "msnodesqlv8": "^5.1.9",
+    "mssql": "^12.5.2",
     "next": "16.2.5",
     "react": "19.2.4",
     "react-dom": "19.2.4"
