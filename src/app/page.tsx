@@ -1,5 +1,8 @@
 "use client";
 import { useEffect, useState } from 'react';
+import BudgetTracker from './components/BudgetTracker';
+import AnalyticsDashboard from './components/AnalyticsDashboard';
+import ExpenseTable from './components/ExpenseTable';
 
 export default function Home() {
     const [categories, setCategories] = useState<any[]>([]);
@@ -12,6 +15,7 @@ export default function Home() {
     
     const [showCategoryManager, setShowCategoryManager] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
+    const [newBudgetLimit, setNewBudgetLimit] = useState(''); // අලුතින් දැමූ Budget Limit එක
     const [modalMessage, setModalMessage] = useState('');
     
     const [statusMessage, setStatusMessage] = useState('');
@@ -51,12 +55,17 @@ export default function Home() {
             const res = await fetch('/api/categories', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ categoryName: newCategoryName, description: "Added by user" })
+                body: JSON.stringify({ 
+                    categoryName: newCategoryName, 
+                    description: "Added by user",
+                    budgetLimit: parseFloat(newBudgetLimit) || 0 // අලුතින් දැමූ Budget Limit එක යැවීම
+                })
             });
 
             if (res.ok) {
                 setModalMessage("Success: Category added successfully!");
                 setNewCategoryName('');
+                setNewBudgetLimit(''); // අලුතින් දැමූ කොටස හිස් කිරීම
                 fetchCategories();
             } else {
                 setModalMessage("Error: Could not add category.");
@@ -137,6 +146,7 @@ export default function Home() {
     return (
         <div className="min-h-screen bg-slate-100 p-10 font-sans text-gray-800 relative">
             
+            {/* Category Manager Modal */}
             {showCategoryManager && (
                 <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
                     <div className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col">
@@ -147,21 +157,31 @@ export default function Home() {
 
                         <div className="mb-6 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
                             <label htmlFor="newCategoryInput" className="block text-sm font-bold text-indigo-900 mb-2">Create New Category</label>
-                            <div className="flex gap-2">
+                            {/* මෙතනයි වෙනස කළේ: flex-col දාලා කොටු දෙක පේළි දෙකකට හැදුවා ලස්සනට පේන්න */}
+                            <div className="flex flex-col gap-3">
                                 <input 
                                     id="newCategoryInput"
                                     type="text" 
                                     value={newCategoryName} 
                                     onChange={(e) => setNewCategoryName(e.target.value)}
-                                    placeholder="e.g. Shopping"
-                                    className="flex-1 p-2 border border-indigo-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                                    placeholder="Category Name (e.g. Shopping)"
+                                    className="w-full p-2 border border-indigo-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
                                 />
-                                <button 
-                                    onClick={handleAddCategoryInModal}
-                                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-indigo-700 transition-colors"
-                                >
-                                    Add
-                                </button>
+                                <div className="flex gap-2">
+                                    <input 
+                                        type="number" 
+                                        value={newBudgetLimit} 
+                                        onChange={(e) => setNewBudgetLimit(e.target.value)}
+                                        placeholder="Budget Limit (Rs)"
+                                        className="flex-1 p-2 border border-indigo-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"
+                                    />
+                                    <button 
+                                        onClick={handleAddCategoryInModal}
+                                        className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-700 transition-colors"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -246,7 +266,14 @@ export default function Home() {
                         </div>
                     </form>
                 </main>
+                
+                {/* Budget Tracker */}
+                <BudgetTracker expenses={expenses} categories={categories} />
+                
+                {/* Analytics Dashboard */}
+                <AnalyticsDashboard expenses={expenses} categories={categories} />
 
+                {/* Expense Table and Filter */}
                 <section className="bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
                     <div className="flex flex-col md:flex-row justify-between items-center mb-6 border-b-2 border-indigo-100 pb-4 gap-4">
                         <h2 className="text-2xl font-semibold text-gray-700">Recent Transactions</h2>
@@ -259,32 +286,11 @@ export default function Home() {
                         </div>
                     </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="bg-indigo-50 text-indigo-900">
-                                    <th className="p-4 font-bold rounded-tl-lg">Date</th>
-                                    <th className="p-4 font-bold">Category</th>
-                                    <th className="p-4 font-bold">Description</th>
-                                    <th className="p-4 font-bold text-right">Amount</th>
-                                    <th className="p-4 font-bold text-center rounded-tr-lg">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {expenses.map((exp, i) => (
-                                    <tr key={i} className="border-b border-gray-50 hover:bg-slate-50 transition-colors">
-                                        <td className="p-4 text-gray-600 text-sm">{new Date(exp.ExpenseDate).toLocaleDateString()}</td>
-                                        <td className="p-4 text-gray-800 font-medium">{exp.CategoryName}</td>
-                                        <td className="p-4 text-gray-600 text-sm">{exp.Description}</td>
-                                        <td className="p-4 font-bold text-red-500 text-right">Rs. {exp.Amount.toFixed(2)}</td>
-                                        <td className="p-4 text-center">
-                                            <button onClick={() => handleDeleteExpense(exp.ExpenseID)} className="text-red-500 hover:bg-red-50 px-3 py-1 rounded text-xs font-bold border border-red-100">Delete</button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    <ExpenseTable 
+                        expenses={expenses} 
+                        categories={categories} 
+                        onDelete={handleDeleteExpense} 
+                    />
                 </section>
             </div>
         </div>

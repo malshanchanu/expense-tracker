@@ -15,21 +15,22 @@ export async function GET() {
 export async function POST(request) {
     try {
         const body = await request.json();
-        const { categoryName, description } = body;
+        // අලුතින් budgetLimit එක ලබා ගැනීම
+        const { categoryName, description, budgetLimit } = body;
         const pool = await connectToDatabase();
 
         const result = await pool.request()
             .input('CategoryName', categoryName)
             .input('Description', description || 'User added category')
+            .input('BudgetLimit', budgetLimit || 0) // Database එකට යැවීම
             .query(`
-                INSERT INTO Categories (CategoryName, Description) 
+                INSERT INTO Categories (CategoryName, Description, BudgetLimit) 
                 OUTPUT INSERTED.CategoryID
-                VALUES (@CategoryName, @Description)
+                VALUES (@CategoryName, @Description, @BudgetLimit)
             `);
 
         let newId = null;
         if (result.recordset && result.recordset.length > 0) {
-            // Extract the first value from the first record
             newId = Object.values(result.recordset); 
         }
 
@@ -70,7 +71,6 @@ export async function DELETE(request) {
     } catch (error) {
         console.error("Error deleting category:", error.message);
         
-        // Handle Foreign Key constraint errors (if expenses are linked to this category)
         if (error.message.includes('REFERENCE constraint') || error.message.includes('conflicted with')) {
             return NextResponse.json({ 
                 error: "Cannot delete category as it is linked to existing expense records." 
