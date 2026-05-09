@@ -14,6 +14,7 @@ export async function GET(request) {
                 .input('StartDate', startDate)
                 .input('EndDate', endDate)
                 .execute('sp_GetExpensesByDateRange'); 
+            
             return NextResponse.json(result.recordset);
         } else {
             // Fetch all expenses with category names using a SQL JOIN
@@ -23,6 +24,7 @@ export async function GET(request) {
                 JOIN Categories c ON e.CategoryID = c.CategoryID 
                 ORDER BY e.ExpenseDate DESC
             `);
+            
             return NextResponse.json(result.recordset);
         }
     } catch (error) {
@@ -67,6 +69,7 @@ export async function DELETE(request) {
         }
 
         const pool = await connectToDatabase();
+        
         await pool.request()
             .input('ExpenseID', id)
             .query('DELETE FROM Expenses WHERE ExpenseID = @ExpenseID');
