@@ -1,10 +1,11 @@
+"use client";
 import { useState } from 'react';
 
 export default function ExpenseTable({ expenses, categories, onDelete }: { expenses: any[], categories: any[], onDelete: (id: number) => void }) {
     const [searchTerm, setSearchTerm] = useState("");
     const [filterCategory, setFilterCategory] = useState("");
 
-    // CSV විදිහට දත්ත Export කිරීම
+    // Export expense data as a CSV file
     const handleExportCSV = () => {
         const csvData = [
             ["Date", "Category", "Amount", "Description"],
@@ -23,7 +24,7 @@ export default function ExpenseTable({ expenses, categories, onDelete }: { expen
         link.click();
     };
 
-    // Search සහ Category අනුව Filter කිරීම
+    // Filter expenses based on search query and selected category
     const filteredExpenses = expenses.filter((exp: any) => {
         const matchSearch = exp.Description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? true;
         const matchCategory = filterCategory ? exp.CategoryName === filterCategory : true;
@@ -37,13 +38,13 @@ export default function ExpenseTable({ expenses, categories, onDelete }: { expen
                 <input 
                     type="text" 
                     placeholder="Search expenses..." 
-                    className="border p-2 rounded w-full"
+                    className="border p-2 rounded w-full outline-none focus:ring-2 focus:ring-indigo-400"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 <select 
-                    aria-label="Filter by Category" /* මේ පේළිය අලුතින් එකතු කළා */
-                    className="border p-2 rounded w-64"
+                    aria-label="Filter by Category"
+                    className="border p-2 rounded w-64 outline-none focus:ring-2 focus:ring-indigo-400"
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
                 >
@@ -54,7 +55,7 @@ export default function ExpenseTable({ expenses, categories, onDelete }: { expen
                 </select>
                 <button 
                     onClick={handleExportCSV} 
-                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 whitespace-nowrap font-bold"
+                    className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 whitespace-nowrap font-bold transition-colors"
                 >
                     Export CSV
                 </button>
@@ -64,28 +65,35 @@ export default function ExpenseTable({ expenses, categories, onDelete }: { expen
             <table className="w-full text-left border-collapse">
                 <thead>
                     <tr className="bg-gray-100">
-                        <th className="p-2 border-b">Date</th>
-                        <th className="p-2 border-b">Category</th>
-                        <th className="p-2 border-b">Amount</th>
-                        <th className="p-2 border-b">Description</th>
-                        <th className="p-2 border-b">Actions</th>
+                        <th className="p-3 border-b text-gray-700">Date</th>
+                        <th className="p-3 border-b text-gray-700">Category</th>
+                        <th className="p-3 border-b text-gray-700">Amount</th>
+                        <th className="p-3 border-b text-gray-700">Description</th>
+                        <th className="p-3 border-b text-gray-700">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {filteredExpenses.map((exp: any) => (
-                        <tr key={exp.ExpenseID} className="border-b hover:bg-gray-50">
-                            <td className="p-2">{new Date(exp.ExpenseDate).toLocaleDateString()}</td>
-                            <td className="p-2">{exp.CategoryName}</td>
-                            <td className="p-2">Rs. {exp.Amount.toFixed(2)}</td>
-                            <td className="p-2">{exp.Description}</td>
-                            <td className="p-2">
-                                <button onClick={() => onDelete(exp.ExpenseID)} className="text-red-500 hover:text-red-700 font-bold">Delete</button>
+                        <tr key={exp.ExpenseID} className="border-b hover:bg-gray-50 transition-colors">
+                            <td className="p-3 text-sm text-gray-600">{new Date(exp.ExpenseDate).toLocaleDateString()}</td>
+                            <td className="p-3 text-sm font-medium text-gray-800">{exp.CategoryName}</td>
+                            <td className="p-3 text-sm font-bold text-red-500">LKR {Number(exp.Amount).toFixed(2)}</td>
+                            <td className="p-3 text-sm text-gray-600">{exp.Description}</td>
+                            <td className="p-3 text-sm">
+                                <button 
+                                    onClick={() => onDelete(exp.ExpenseID)} 
+                                    className="text-red-500 hover:text-red-700 font-bold bg-red-50 px-3 py-1 rounded border border-red-100"
+                                >
+                                    Delete
+                                </button>
                             </td>
                         </tr>
                     ))}
                     {filteredExpenses.length === 0 && (
                         <tr>
-                            <td colSpan={5} className="p-4 text-center text-gray-500">No expenses match your search.</td>
+                            <td colSpan={5} className="p-6 text-center text-gray-500 italic">
+                                No expenses match your search criteria.
+                            </td>
                         </tr>
                     )}
                 </tbody>

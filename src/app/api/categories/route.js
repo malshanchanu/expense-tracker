@@ -15,14 +15,15 @@ export async function GET() {
 export async function POST(request) {
     try {
         const body = await request.json();
-        // අලුතින් budgetLimit එක ලබා ගැනීම
+        
+        // Extract budgetLimit from the request body
         const { categoryName, description, budgetLimit } = body;
         const pool = await connectToDatabase();
 
         const result = await pool.request()
             .input('CategoryName', categoryName)
             .input('Description', description || 'User added category')
-            .input('BudgetLimit', budgetLimit || 0) // Database එකට යැවීම
+            .input('BudgetLimit', budgetLimit || 0) // Pass the budget limit to the database query
             .query(`
                 INSERT INTO Categories (CategoryName, Description, BudgetLimit) 
                 OUTPUT INSERTED.CategoryID
