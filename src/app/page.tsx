@@ -157,7 +157,7 @@ export default function Home() {
 
                         <div className="mb-6 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
                             <label htmlFor="newCategoryInput" className="block text-sm font-bold text-indigo-900 mb-2">Create New Category</label>
-                            {/* Changes made here: Added flex-col to stack the two fields into two rows for a better UI */}
+                           
                             <div className="flex flex-col gap-3">
                                 <input 
                                     id="newCategoryInput"
