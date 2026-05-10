@@ -15,7 +15,7 @@ export default function Home() {
     
     const [showCategoryManager, setShowCategoryManager] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState('');
-    const [newBudgetLimit, setNewBudgetLimit] = useState(''); // අලුතින් දැමූ Budget Limit එක
+    const [newBudgetLimit, setNewBudgetLimit] = useState(''); // Newly added Budget Limit state
     const [modalMessage, setModalMessage] = useState('');
     
     const [statusMessage, setStatusMessage] = useState('');
@@ -58,14 +58,14 @@ export default function Home() {
                 body: JSON.stringify({ 
                     categoryName: newCategoryName, 
                     description: "Added by user",
-                    budgetLimit: parseFloat(newBudgetLimit) || 0 // අලුතින් දැමූ Budget Limit එක යැවීම
+                    budgetLimit: parseFloat(newBudgetLimit) || 0 // Sending the newly added Budget Limit
                 })
             });
 
             if (res.ok) {
                 setModalMessage("Success: Category added successfully!");
                 setNewCategoryName('');
-                setNewBudgetLimit(''); // අලුතින් දැමූ කොටස හිස් කිරීම
+                setNewBudgetLimit(''); // Clearing the newly added field
                 fetchCategories();
             } else {
                 setModalMessage("Error: Could not add category.");
@@ -157,7 +157,7 @@ export default function Home() {
 
                         <div className="mb-6 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
                             <label htmlFor="newCategoryInput" className="block text-sm font-bold text-indigo-900 mb-2">Create New Category</label>
-                            {/* මෙතනයි වෙනස කළේ: flex-col දාලා කොටු දෙක පේළි දෙකකට හැදුවා ලස්සනට පේන්න */}
+                            {/* Changes made here: Added flex-col to stack the two fields into two rows for a better UI */}
                             <div className="flex flex-col gap-3">
                                 <input 
                                     id="newCategoryInput"
